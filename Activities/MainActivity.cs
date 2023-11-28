@@ -12,12 +12,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Todoist.Net.Models;
 
-
-namespace OrdersExtractor
+/*
+ * In order to calibrate all current packages - 
+ * You can create a temp project 'test', and sync with him, the app will save all already synced packages,
+ * after that, change the project name to the required one, and next sync will sync only the updated
+ */
+namespace OrdersExtractor.Activities
 {
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
+        // If app crashes - check if permission given
         private EditText tokenET;
         private EditText projectNameET;
         private EditText phoneNumberET;
@@ -25,7 +30,7 @@ namespace OrdersExtractor
 
         private ISharedPreferences prefs;
 
-        protected override async void OnCreate(Bundle savedInstanceState)
+        protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
@@ -89,7 +94,7 @@ namespace OrdersExtractor
 
                 foreach (Order order in orders)
                 {
-                    bool result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString());  // add each order as a Todoist task
+                    bool result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), Priority.Priority2);  // add each order as a Todoist task
 
                     if (!result)
                         Toast.MakeText(Application.Context, $"ERROR - {order.PackageNumber}\nContinuing..", ToastLength.Long).Show();
