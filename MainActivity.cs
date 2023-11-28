@@ -146,12 +146,6 @@ namespace OrdersExtractor
             return prefs.GetStringSet("orders", new List<string>());
         }
 
-        private bool SettingsSet
-        {
-            get
-            {
-                return tokenET.Text != "" && projectNameET.Text != "" && phoneNumberET.Text != "";
-            }
-        }
+        private bool SettingsSet => tokenET.Text != "" && projectNameET.Text != "" && phoneNumberET.Text != "";
     }
 }
