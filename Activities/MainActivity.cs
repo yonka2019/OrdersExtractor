@@ -94,10 +94,20 @@ namespace OrdersExtractor.Activities
 
                 foreach (Order order in orders)
                 {
-                    bool result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), Priority.Priority2);  // add each order as a Todoist task
+                    bool result = false;
+                    Exception _ex = null;
 
-                    if (!result)
-                        Toast.MakeText(Application.Context, $"ERROR - {order.PackageNumber}\nContinuing..", ToastLength.Long).Show();
+                    try
+                    {
+                        result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), Priority.Priority2);  // add each order as a Todoist task
+                    }
+                    catch (Exception ex)
+                    {
+                        _ex = ex;
+                    }
+
+                    if (!result || _ex != null)  // if bad result OR got any exception 
+                        Toast.MakeText(Application.Context, $"ERROR with {order.PackageNumber} - {_ex.Message}\nContinuing..", ToastLength.Long).Show();
 
                     /* ## GIT README
                      * ERROR - ${PACKAGE_NUMBER}

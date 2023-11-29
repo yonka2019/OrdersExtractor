@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Todoist.Net;
@@ -24,9 +25,10 @@ namespace OrdersExtractor.API
                 if (projects.Count() == 0)
                     throw new System.Exception();
             }
-            catch
+            catch(Exception e)
             {
-                throw new System.Exception("Bad token / no projects / limit exceeded");
+                throw e;
+                //throw new System.Exception("Bad token / no projects / limit exceeded");
             }
 
         }
