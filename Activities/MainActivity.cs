@@ -89,6 +89,8 @@ namespace OrdersExtractor.Activities
                 ProgressDialog progressDialog = new ProgressDialog(this);
                 progressDialog.SetTitle("Syncing...");
                 progressDialog.SetMessage($"Syncing tasks 0/{orders.Count()} with Todoist, please wait..");
+                progressDialog.Indeterminate = true;
+                progressDialog.SetCancelable(false);
 
                 progressDialog.Show();
 
@@ -118,7 +120,7 @@ namespace OrdersExtractor.Activities
                      */
                     progressDialog.SetMessage($"Syncing tasks {++synced}/{orders.Count()} with Todoist, please wait..");
                 }
-                Toast.MakeText(Application.Context, "Synced successfully", ToastLength.Long).Show();
+                Toast.MakeText(Application.Context, "Sync Finished", ToastLength.Long).Show();
 
                 progressDialog.Dismiss();
 
