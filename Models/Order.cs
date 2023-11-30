@@ -35,10 +35,10 @@ namespace OrdersExtractor.Models
 
         public override string ToString()
         {
-            return $"**משלוח** {TrackNumber}\n\n\n" +
-                $"**מיקום:** {Location}\n\n" +
-                $"**הגיעה בתאריך**: {ArrivedOn}\n\n" +
-                $"**למידע נוסף:** {URL}";
+            return $"**• מספר מעקב:** {TrackNumber}\n\n" +
+                $"**• מיקום:** {Location}\n\n" +
+                $"**• הגיע בתאריך:** {ArrivedOn}\n\n" +
+                $"**• למידע נוסף:** {URL}";
         }
     }
 }
