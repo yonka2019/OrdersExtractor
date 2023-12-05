@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
-using Android.Preferences;
 using Android.Runtime;
 using Android.Widget;
 using AndroidX.AppCompat.App;
@@ -10,7 +9,9 @@ using OrdersExtractor.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Todoist.Net.Models;
+using Xamarin.Essentials;
 
 /*
  * In order to calibrate all current packages - 
@@ -30,15 +31,18 @@ namespace OrdersExtractor.Activities
 
         private ISharedPreferences prefs;
 
-        protected override void OnCreate(Bundle savedInstanceState)
+        private readonly string TodoistUserID;
+
+        protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
+            await GetPermissions();
             SetContentView(Resource.Layout.activity_main);
             SetRefs();
 
-            prefs = PreferenceManager.GetDefaultSharedPreferences(this);
+            prefs = GetSharedPreferences("datafile", FileCreationMode.Private);
 
             RestoreSettings();  // restore existing settings, otherwise - it will empty
         }
@@ -48,6 +52,20 @@ namespace OrdersExtractor.Activities
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+
+        private async Task GetPermissions()
+        {
+            PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.Sms>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.Sms>();
+                if (status != PermissionStatus.Granted)
+                {
+                    Toast.MakeText(Application.Context, $"Need access to SMS", ToastLength.Long).Show();
+                    Finish();
+                }
+            }
         }
 
         private void SetRefs()
@@ -68,10 +86,12 @@ namespace OrdersExtractor.Activities
 
                 TodoistAPI todoist = default;
                 Project project = default;
+
                 try
                 {
                     todoist = new TodoistAPI(tokenET.Text);
                     await todoist.TestAuth();  // test the given token
+                    await todoist.SetUserID();
 
                     project = await todoist.GetProject(projectNameET.Text);
                 }
@@ -101,7 +121,7 @@ namespace OrdersExtractor.Activities
 
                     try
                     {
-                        result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), Priority.Priority2);  // add each order as a Todoist task
+                        result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), todoist.UserID, Priority.Priority2);  // add each order as a Todoist task
                     }
                     catch (Exception ex)
                     {

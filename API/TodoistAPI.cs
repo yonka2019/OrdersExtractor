@@ -10,6 +10,7 @@ namespace OrdersExtractor.API
     internal class TodoistAPI
     {
         private readonly TodoistClient todoist;
+        internal string UserID { get; private set; }
 
         internal TodoistAPI(string token)
         {
@@ -25,12 +26,16 @@ namespace OrdersExtractor.API
                 if (projects.Count() == 0)
                     throw new System.Exception();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw e;
                 //throw new System.Exception("Bad token / no projects / limit exceeded");
             }
+        }
 
+        internal async Task SetUserID()
+        {
+            UserID = (await todoist.Users.GetCurrentAsync()).Id;
         }
 
         internal async Task<Project> GetProject(string name)
@@ -43,14 +48,15 @@ namespace OrdersExtractor.API
             return requiredProject;
         }
 
-        internal async Task<bool> AddTask(ComplexId? toProjectID, string taskName, string taskDescription, Priority priority = Priority.Priority1)
+        internal async Task<bool> AddTask(ComplexId? toProjectID, string taskName, string taskDescription, string assigneeId, Priority priority = Priority.Priority1)
         {
             if (toProjectID != null && taskName != "" && taskDescription != "")
             {
                 Item newTask = new Item(taskName, toProjectID.Value)
                 {
                     Description = taskDescription,
-                    Priority = priority
+                    Priority = priority,
+                    ResponsibleUid = assigneeId
                 };
 
                 await todoist.Items.AddAsync(newTask);
