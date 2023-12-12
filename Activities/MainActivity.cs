@@ -4,6 +4,7 @@ using Android.OS;
 using Android.Runtime;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using AndroidX.Loader.Content;
 using OrdersExtractor.API;
 using OrdersExtractor.Models;
 using System;
@@ -28,10 +29,10 @@ namespace OrdersExtractor.Activities
         private EditText projectNameET;
         private EditText phoneNumberET;
         private Button syncB;
+        private Button clearB;
 
         private ISharedPreferences prefs;
 
-        private readonly string TodoistUserID;
 
         protected override async void OnCreate(Bundle savedInstanceState)
         {
@@ -74,7 +75,18 @@ namespace OrdersExtractor.Activities
             projectNameET = FindViewById<EditText>(Resource.Id.projectNameET);
             phoneNumberET = FindViewById<EditText>(Resource.Id.phoneNumberET);
             syncB = FindViewById<Button>(Resource.Id.syncB);
+            clearB = FindViewById<Button>(Resource.Id.clearB);
+            clearB.Click += ClearB_Click;
             syncB.Click += SyncB_Click;
+        }
+
+        private void ClearB_Click(object sender, EventArgs e)
+        {
+            ISharedPreferencesEditor editor = prefs.Edit();
+            editor.Clear();
+            editor.Commit();
+
+            Toast.MakeText(Application.Context, $"SP Cleared", ToastLength.Long).Show();
         }
 
         private async void SyncB_Click(object sender, EventArgs e)
@@ -108,7 +120,7 @@ namespace OrdersExtractor.Activities
 
                 ProgressDialog progressDialog = new ProgressDialog(this);
                 progressDialog.SetTitle("Syncing...");
-                progressDialog.SetMessage($"Syncing tasks 0/{orders.Count()} with Todoist, please wait..");
+                progressDialog.SetMessage($"Syncing task 0/{orders.Count()} with Todoist, please wait..");
                 progressDialog.Indeterminate = true;
                 progressDialog.SetCancelable(false);
 
