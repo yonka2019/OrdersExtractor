@@ -121,7 +121,7 @@ namespace OrdersExtractor.Activities
 
                     try
                     {
-                        result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), todoist.UserID, Priority.Priority2);  // add each order as a Todoist task
+                        result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), todoist.UserID, "Package", Priority.Priority2);  // add each order as a Todoist task
                     }
                     catch (Exception ex)
                     {

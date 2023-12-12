@@ -48,7 +48,7 @@ namespace OrdersExtractor.API
             return requiredProject;
         }
 
-        internal async Task<bool> AddTask(ComplexId? toProjectID, string taskName, string taskDescription, string assigneeId, Priority priority = Priority.Priority1)
+        internal async Task<bool> AddTask(ComplexId? toProjectID, string taskName, string taskDescription, string assigneeId, string label, Priority priority = Priority.Priority1, params string[] Labels)
         {
             if (toProjectID != null && taskName != "" && taskDescription != "")
             {
@@ -56,8 +56,9 @@ namespace OrdersExtractor.API
                 {
                     Description = taskDescription,
                     Priority = priority,
-                    ResponsibleUid = assigneeId
+                    ResponsibleUid = assigneeId,
                 };
+                newTask.Labels.Add(label);
 
                 await todoist.Items.AddAsync(newTask);
                 return true;
