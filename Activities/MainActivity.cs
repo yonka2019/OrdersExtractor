@@ -121,6 +121,7 @@ namespace OrdersExtractor.Activities
 
                     try
                     {
+                        // set current user as assignee
                         result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), todoist.UserID, "Package", Priority.Priority2);  // add each order as a Todoist task
                     }
                     catch (Exception ex)
