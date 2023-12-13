@@ -61,6 +61,7 @@
     <BundleAssemblies>false</BundleAssemblies>
     <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
     <MandroidI18n />
+    <AndroidLinkSkip>Todoist.Net</AndroidLinkSkip>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
