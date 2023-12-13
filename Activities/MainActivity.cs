@@ -4,7 +4,6 @@ using Android.OS;
 using Android.Runtime;
 using Android.Widget;
 using AndroidX.AppCompat.App;
-using AndroidX.Loader.Content;
 using OrdersExtractor.API;
 using OrdersExtractor.Models;
 using System;
@@ -21,7 +20,7 @@ using Xamarin.Essentials;
  */
 namespace OrdersExtractor.Activities
 {
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true)]
+    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme")]
     public class MainActivity : AppCompatActivity
     {
         // If app crashes - check if permission given
@@ -82,11 +81,25 @@ namespace OrdersExtractor.Activities
 
         private void ClearB_Click(object sender, EventArgs e)
         {
-            ISharedPreferencesEditor editor = prefs.Edit();
-            editor.Clear();
-            editor.Commit();
+            AndroidX.AppCompat.App.AlertDialog.Builder alert = new AndroidX.AppCompat.App.AlertDialog.Builder(this);
+            alert.SetTitle("Confirm clearing SP data");
+            alert.SetMessage("Warning, clearing SP will clear the entire application data");
+            alert.SetPositiveButton("Clear SP anyway", (senderAlert, args) =>
+            {
+                ISharedPreferencesEditor editor = prefs.Edit();
+                editor.Clear();
+                editor.Commit();
 
-            Toast.MakeText(Application.Context, $"SP Cleared", ToastLength.Long).Show();
+                Toast.MakeText(Application.Context, $"SP Cleared", ToastLength.Long).Show();
+            });
+
+            alert.SetNegativeButton("Nevermind", (senderAlert, args) =>
+            {
+                Toast.MakeText(this, "Cancelled", ToastLength.Short).Show();
+            });
+
+            Dialog dialog = alert.Create();
+            dialog.Show();
         }
 
         private async void SyncB_Click(object sender, EventArgs e)
