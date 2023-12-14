@@ -164,7 +164,7 @@ namespace OrdersExtractor.Activities
                      * - task title empty
                      * - task description empty
                      */
-                    progressDialog.SetMessage($"Syncing tasks {++synced}/{orders.Count()} with Todoist, please wait..");
+                    progressDialog.SetMessage($"Syncing task {++synced}/{orders.Count()} with Todoist, please wait..");
                 }
                 Toast.MakeText(Application.Context, "Sync Finished", ToastLength.Long).Show();
 
