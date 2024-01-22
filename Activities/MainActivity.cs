@@ -27,7 +27,7 @@ namespace OrdersExtractor.Activities
         private EditText tokenET;
         private EditText projectNameET;
         private EditText phoneNumberET;
-        private Button syncB;
+        internal static Button syncB;
         private Button clearB;
 
         private ISharedPreferences prefs;
@@ -36,7 +36,6 @@ namespace OrdersExtractor.Activities
         protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
             await GetPermissions();
             SetContentView(Resource.Layout.activity_main);
@@ -45,11 +44,15 @@ namespace OrdersExtractor.Activities
             prefs = GetSharedPreferences("datafile", FileCreationMode.Private);
 
             RestoreSettings();  // restore existing settings, otherwise - it will empty
+
+            bool isWidget = Intent.GetBooleanExtra("widget", false);
+
+            if (isWidget)
+                syncB.PerformClick();
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
