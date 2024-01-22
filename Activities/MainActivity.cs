@@ -36,6 +36,7 @@ namespace OrdersExtractor.Activities
         protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
             await GetPermissions();
             SetContentView(Resource.Layout.activity_main);
