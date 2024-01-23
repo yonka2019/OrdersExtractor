@@ -111,6 +111,8 @@ namespace OrdersExtractor.Activities
             int synced = 0;
             if (SettingsSet)
             {
+                syncB.Enabled = false;  // disable sync button until finished
+
                 SaveSettings();
 
                 TodoistAPI todoist = default;
@@ -127,6 +129,7 @@ namespace OrdersExtractor.Activities
                 catch (Exception ex)
                 {
                     Toast.MakeText(Application.Context, $"ERROR - {ex.Message}", ToastLength.Long).Show();
+                    syncB.Enabled = true;
                     return;
                 }
 
@@ -176,6 +179,7 @@ namespace OrdersExtractor.Activities
 
                 alreadySyncedOrders.AddRange(orders.Select(order => order.PackageNumber + order.TrackNumber));  // add all orders which were added now, they are already synced. This is in order to skip them next sync
                 SaveAlreadySyncedOrders(alreadySyncedOrders);
+                syncB.Enabled = true;
 
                 Finish();
             }
