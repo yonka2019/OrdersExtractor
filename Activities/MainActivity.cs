@@ -27,7 +27,11 @@ namespace OrdersExtractor.Activities
         private EditText tokenET;
         private EditText projectNameET;
         private EditText phoneNumberET;
+        private EditText manualAddET;
+        private EditText manualAddDescET;
+
         internal static Button syncB;
+        internal static Button manualAdd;
         private Button clearB;
 
         private ISharedPreferences prefs;
@@ -36,7 +40,7 @@ namespace OrdersExtractor.Activities
         protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
+            Platform.Init(this, savedInstanceState);
 
             await GetPermissions();
             SetContentView(Resource.Layout.activity_main);
@@ -54,7 +58,7 @@ namespace OrdersExtractor.Activities
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
-            Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
 
@@ -77,10 +81,64 @@ namespace OrdersExtractor.Activities
             tokenET = FindViewById<EditText>(Resource.Id.tokenET);
             projectNameET = FindViewById<EditText>(Resource.Id.projectNameET);
             phoneNumberET = FindViewById<EditText>(Resource.Id.phoneNumberET);
+            manualAddET = FindViewById<EditText>(Resource.Id.manualAddET);
+            manualAddDescET = FindViewById<EditText>(Resource.Id.manualAddDescET);
+
             syncB = FindViewById<Button>(Resource.Id.syncB);
+            syncB.Click += SyncB_Click;
+
             clearB = FindViewById<Button>(Resource.Id.clearB);
             clearB.Click += ClearB_Click;
-            syncB.Click += SyncB_Click;
+
+            manualAdd = FindViewById<Button>(Resource.Id.manualAddButton);
+            manualAdd.Click += ManualAdd_Click;
+        }
+
+        private async void ManualAdd_Click(object sender, EventArgs e)
+        {
+            manualAdd.Enabled = false;
+
+            // log via the credentials
+            TodoistAPI todoist;
+            Project project;
+
+            try
+            {
+                (todoist, project) = await TodoistLogin(this, tokenET.Text, projectNameET.Text);
+
+            }
+            catch (Exception ex)
+            {
+                Toast.MakeText(Application.Context, $"ERROR - {ex.Message}", ToastLength.Long).Show();
+
+                manualAdd.Enabled = true;
+                return;
+            }
+
+
+            ProgressDialog progressDialog2 = new ProgressDialog(this);
+            progressDialog2.SetTitle("Adding item..");
+            progressDialog2.SetMessage($"Please wait..");
+            progressDialog2.Indeterminate = true;
+            progressDialog2.SetCancelable(false);
+
+            progressDialog2.Show();
+
+            // add package
+            try
+            {
+                // set current user as assignee
+                await todoist.AddTask(project.Id, manualAddET.Text, manualAddDescET.Text == "" ? "Manually added" : manualAddDescET.Text, todoist.UserID, "Package", Priority.Priority2);  // add each order as a Todoist task
+            }
+            catch (Exception ex)
+            {
+                Toast.MakeText(Application.Context, $"ERROR - {ex.Message}", ToastLength.Long).Show();
+            }
+
+            Toast.MakeText(this, "Item added successfully", ToastLength.Short).Show();
+
+            progressDialog2.Dismiss();
+            manualAdd.Enabled = true;
         }
 
         private void ClearB_Click(object sender, EventArgs e)
@@ -106,6 +164,37 @@ namespace OrdersExtractor.Activities
             dialog.Show();
         }
 
+        private static async Task<(TodoistAPI todoist, Project project)> TodoistLogin(Context c, string token, string projectName)
+        {
+            ProgressDialog progressDialog = new ProgressDialog(c);
+            progressDialog.SetTitle("Logging in..");
+            progressDialog.SetMessage($"Please wait..");
+            progressDialog.Indeterminate = true;
+            progressDialog.SetCancelable(false);
+
+            progressDialog.Show();
+
+            TodoistAPI todoist = default;
+            Project project = default;
+
+            try
+            {
+                todoist = new TodoistAPI(token);
+                await todoist.TestAuth();  // test the given token
+                await todoist.SetUserID();
+
+                project = await todoist.GetProject(projectName);
+            }
+            catch (Exception ex)
+            {
+                progressDialog.Dismiss();
+                throw ex;
+            }
+
+            progressDialog.Dismiss();
+            return (todoist, project);
+        }
+
         private async void SyncB_Click(object sender, EventArgs e)
         {
             int synced = 0;
@@ -121,11 +210,7 @@ namespace OrdersExtractor.Activities
 
                 try
                 {
-                    todoist = new TodoistAPI(tokenET.Text);
-                    await todoist.TestAuth();  // test the given token
-                    await todoist.SetUserID();
-
-                    project = await todoist.GetProject(projectNameET.Text);
+                    (todoist, project) = await TodoistLogin(this, tokenET.Text, projectNameET.Text);
                 }
                 catch (Exception ex)
                 {
@@ -136,18 +221,17 @@ namespace OrdersExtractor.Activities
                     return;
                 }
 
-
                 List<string> alreadySyncedOrders = RestoreAlreadySyncedOrders().ToList();  // restore already synced orders
                 List<Order> orders = SMSData.ExtractOrders(ContentResolver, phoneNumberET.Text);  // get all orders
                 orders = orders.Where(order => !alreadySyncedOrders.Contains(order.PackageNumber + order.TrackNumber)).ToList();  // filter orders which were already synced before
 
-                ProgressDialog progressDialog = new ProgressDialog(this);
-                progressDialog.SetTitle("Syncing...");
-                progressDialog.SetMessage($"Syncing task 0/{orders.Count()} with Todoist, please wait..");
-                progressDialog.Indeterminate = true;
-                progressDialog.SetCancelable(false);
+                ProgressDialog progressDialog2 = new ProgressDialog(this);
+                progressDialog2.SetTitle("Syncing...");
+                progressDialog2.SetMessage($"Syncing task 0/{orders.Count()} with Todoist, please wait..");
+                progressDialog2.Indeterminate = true;
+                progressDialog2.SetCancelable(false);
 
-                progressDialog.Show();
+                progressDialog2.Show();
 
                 foreach (Order order in orders)
                 {
@@ -174,11 +258,11 @@ namespace OrdersExtractor.Activities
                      * - task title empty
                      * - task description empty
                      */
-                    progressDialog.SetMessage($"Syncing task {++synced}/{orders.Count()} with Todoist, please wait..");
+                    progressDialog2.SetMessage($"Syncing task {++synced}/{orders.Count()} with Todoist, please wait..");
                 }
                 Toast.MakeText(Application.Context, "Sync Finished", ToastLength.Long).Show();
 
-                progressDialog.Dismiss();
+                progressDialog2.Dismiss();
 
                 alreadySyncedOrders.AddRange(orders.Select(order => order.PackageNumber + order.TrackNumber));  // add all orders which were added now, they are already synced. This is in order to skip them next sync
                 SaveAlreadySyncedOrders(alreadySyncedOrders);
