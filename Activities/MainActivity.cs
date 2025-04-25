@@ -37,7 +37,7 @@ namespace OrdersExtractor.Activities
 
         private ISharedPreferences prefs;
 
-        private const int ISRAEL_POST_PACKAGE_DEADLINE_DAYS = 7;
+        private const int ISRAEL_POST_PACKAGE_DEADLINE_DAYS = 4;
 
 
         protected override async void OnCreate(Bundle savedInstanceState)
