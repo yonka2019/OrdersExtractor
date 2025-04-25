@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace OrdersExtractor.Models
 {
@@ -13,32 +15,32 @@ namespace OrdersExtractor.Models
         internal string TrackNumber { get; private set; }
         internal string Location { get; private set; }
         internal string URL { get; private set; }
-        internal string ArrivedOn { get; private set; }
+        internal DateTime SMSArrivedOn { get; private set; }
 
-        internal Order(string packageNumber, string trackNumber, string location, string url, string arrivedOn)
+        internal Order(string packageNumber, string trackNumber, string location, string url, DateTime arrivedOn)
         {
             PackageNumber = packageNumber;
             TrackNumber = trackNumber;
             Location = location;
             URL = url;
-            ArrivedOn = arrivedOn;
+            SMSArrivedOn = arrivedOn;
         }
 
-        internal Order(string message, string arrivedOn)
+        internal Order(string message, DateTime arrivedOn)
         {
             PackageNumber = PACKAGE_NUMBER_REGEX.Match(message).Groups[1].Value;
             TrackNumber = TRACK_NUMBER_REGEX.Match(message).Groups[1].Value;
             Location = LOCATION_REGEX.Match(message).Groups[1].Value;
             URL = URL_REGEX.Match(message).Groups[1].Value;
-            ArrivedOn = arrivedOn;
+            SMSArrivedOn = arrivedOn;
         }
 
         public override string ToString()
         {
-            return $"**• מספר מעקב:** {TrackNumber}\n\n" +
-                $"**• מיקום:** {Location}\n\n" +
-                $"**• הגיע בתאריך:** {ArrivedOn}\n\n" +
-                $"**• למידע נוסף:** {URL}";
+            return $"**• Tracking Number:** {TrackNumber}\n\n" +
+                $"**• Package Location:** {Location}\n\n" +
+                $"**• Message Arrived At:** {SMSArrivedOn.ToString(CultureInfo.GetCultureInfo("he-IL"))}\n\n" +
+                $"**• More Info:** {URL}";
         }
     }
 }

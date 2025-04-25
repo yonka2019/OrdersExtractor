@@ -3,7 +3,6 @@ using Android.Database;
 using Android.Provider;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace OrdersExtractor.Models
 {
@@ -41,12 +40,11 @@ namespace OrdersExtractor.Models
             return orders;
         }
 
-        private static string UnixToSTR(long unixDate)
+        private static DateTime UnixToSTR(long unixDate)
         {
             DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            DateTime date = start.AddMilliseconds(unixDate).ToLocalTime();
+            return start.AddMilliseconds(unixDate).ToLocalTime();
 
-            return date.ToString(CultureInfo.GetCultureInfo("he-IL"));
         }
     }
 }

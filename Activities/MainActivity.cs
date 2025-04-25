@@ -6,6 +6,7 @@ using Android.Widget;
 using AndroidX.AppCompat.App;
 using OrdersExtractor.API;
 using OrdersExtractor.Models;
+using OrdersExtractor.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +36,8 @@ namespace OrdersExtractor.Activities
         private Button clearB;
 
         private ISharedPreferences prefs;
+
+        private const int ISRAEL_POST_PACKAGE_DEADLINE_DAYS = 7;
 
 
         protected override async void OnCreate(Bundle savedInstanceState)
@@ -128,7 +131,7 @@ namespace OrdersExtractor.Activities
             try
             {
                 // set current user as assignee
-                await todoist.AddTask(project.Id, manualAddET.Text, manualAddDescET.Text == "" ? "Manually added" : manualAddDescET.Text, todoist.UserID, "Package", Priority.Priority2);  // add each order as a Todoist task
+                await todoist.AddTask(project.Id, manualAddET.Text, manualAddDescET.Text == "" ? "Manually added" : manualAddDescET.Text, todoist.UserID, "Package", priority: Priority.Priority2);  // add each order as a Todoist task
             }
             catch (Exception ex)
             {
@@ -240,8 +243,19 @@ namespace OrdersExtractor.Activities
 
                     try
                     {
+                        DateTime deadline = order.SMSArrivedOn.Date.AddBusinessDays(ISRAEL_POST_PACKAGE_DEADLINE_DAYS);
+
+                        string locationName;
+                        string[] locationSplitted = order.Location.Split(' ');
+
+                        if (locationSplitted.Length >= 2)
+                            locationName = locationSplitted[0] + " " + locationSplitted[1];
+                        else
+                            locationName = order.Location;
+
+
                         // set current user as assignee
-                        result = await todoist.AddTask(project.Id, order.PackageNumber, order.ToString(), todoist.UserID, "Package", Priority.Priority2);  // add each order as a Todoist task
+                        result = await todoist.AddTask(project.Id, order.PackageNumber + $" - {locationName}", order.ToString(), todoist.UserID, "Package", deadline, Priority.Priority3);  // add each order as a Todoist task
                     }
                     catch (Exception ex)
                     {
