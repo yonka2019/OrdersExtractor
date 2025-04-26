@@ -12,6 +12,7 @@ namespace OrdersExtractor.API
         private readonly TodoistClient todoist;
         internal string UserID { get; private set; }
 
+
         internal TodoistAPI(string token)
         {
             todoist = new TodoistClient(token);
@@ -26,7 +27,7 @@ namespace OrdersExtractor.API
                 if (projects.Count() == 0)
                     throw new System.Exception();
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
                 throw e;
                 //throw new System.Exception("Bad token / no projects / limit exceeded");
@@ -38,9 +39,17 @@ namespace OrdersExtractor.API
             UserID = (await todoist.Users.GetCurrentAsync()).Id;
         }
 
+        internal async Task<bool> IsPremium()
+        {
+            return (await todoist.Users.GetCurrentAsync()).IsPremium;
+        }
+
         internal async Task<Project> GetProject(string name)
         {
             IEnumerable<Project> projects = await todoist.Projects.GetAsync();
+
+
+
             Project requiredProject = projects.FirstOrDefault(p => p.Name == name);
             if (requiredProject == null)
                 throw new System.Exception($"Can't find required project ({name})");
@@ -48,10 +57,8 @@ namespace OrdersExtractor.API
             return requiredProject;
         }
 
-        internal async Task<bool> AddTask(ComplexId? toProjectID, string taskName, string taskDescription, string assigneeId, string label, DateTime? deadline = null, Priority priority = Priority.Priority1, params string[] Labels)
+        internal async Task<bool> AddTask(bool isPremium, ComplexId? toProjectID, string taskName, string taskDescription, string assigneeId, string label, DateTime? deadline = null, Priority priority = Priority.Priority1, params string[] Labels)
         {
-
-
             if (toProjectID != null && taskName != "" && taskDescription != "")
             {
                 AddItem newTask = new AddItem(taskName, toProjectID.Value)
@@ -62,8 +69,11 @@ namespace OrdersExtractor.API
 
                 };
 
-                if (deadline.HasValue)
-                    newTask.Deadline = new Deadline(deadline.Value);
+                if (isPremium)
+                {
+                    if (deadline.HasValue)
+                        newTask.Deadline = new Deadline(deadline.Value);
+                }
 
                 newTask.Labels.Add(label);
 

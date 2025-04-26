@@ -37,6 +37,8 @@ namespace OrdersExtractor.Activities
 
         private ISharedPreferences prefs;
 
+        private static bool _IsUserPremium;
+
         private const int ISRAEL_POST_PACKAGE_DEADLINE_DAYS = 4;
 
 
@@ -131,7 +133,7 @@ namespace OrdersExtractor.Activities
             try
             {
                 // set current user as assignee
-                await todoist.AddTask(project.Id, manualAddET.Text, manualAddDescET.Text == "" ? "Manually added" : manualAddDescET.Text, todoist.UserID, "Package", priority: Priority.Priority2);  // add each order as a Todoist task
+                await todoist.AddTask(_IsUserPremium, project.Id, manualAddET.Text, manualAddDescET.Text == "" ? "Manually added" : manualAddDescET.Text, todoist.UserID, "Package", priority: Priority.Priority2);  // add each order as a Todoist task
             }
             catch (Exception ex)
             {
@@ -186,7 +188,9 @@ namespace OrdersExtractor.Activities
                 await todoist.TestAuth();  // test the given token
                 await todoist.SetUserID();
 
+                _IsUserPremium = await todoist.IsPremium();  // check if user is premium
                 project = await todoist.GetProject(projectName);
+
             }
             catch (Exception ex)
             {
@@ -241,26 +245,26 @@ namespace OrdersExtractor.Activities
                     bool result = false;
                     Exception _ex = null;
 
-                    try
-                    {
-                        DateTime deadline = order.SMSArrivedOn.Date.AddBusinessDays(ISRAEL_POST_PACKAGE_DEADLINE_DAYS);
+                    //try
+                    //{
+                    DateTime deadline = order.SMSArrivedOn.Date.AddBusinessDays(ISRAEL_POST_PACKAGE_DEADLINE_DAYS);
 
-                        string locationName;
-                        string[] locationSplitted = order.Location.Split(' ');
+                    string locationName;
+                    string[] locationSplitted = order.Location.Split(' ');
 
-                        if (locationSplitted.Length >= 2)
-                            locationName = locationSplitted[0] + " " + locationSplitted[1];
-                        else
-                            locationName = order.Location;
+                    if (locationSplitted.Length >= 2)
+                        locationName = locationSplitted[0] + " " + locationSplitted[1];
+                    else
+                        locationName = order.Location;
 
 
-                        // set current user as assignee
-                        result = await todoist.AddTask(project.Id, order.PackageNumber + $" - {locationName}", order.ToString(), todoist.UserID, "Package", deadline, Priority.Priority3);  // add each order as a Todoist task
-                    }
-                    catch (Exception ex)
-                    {
-                        _ex = ex;
-                    }
+                    // set current user as assignee
+                    result = await todoist.AddTask(_IsUserPremium, project.Id, order.PackageNumber + $" - {locationName}", order.ToString(), todoist.UserID, "Package", deadline, Priority.Priority3);  // add each order as a Todoist task
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    _ex = ex;
+                    //}
 
                     if (!result || _ex != null)  // if bad result OR got any exception 
                         Toast.MakeText(Application.Context, $"ERROR with {order.PackageNumber} - {_ex.Message}\nContinuing..", ToastLength.Long).Show();
